@@ -1,108 +1,168 @@
+function updateCartCount() {
+  const cart = JSON.parse(localStorage.getItem("cart")) || [];
+  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+  document.querySelector(".open_cart_number").textContent = totalItems;
+}
 
-let btnLocation = document.getElementById('open_cart_btn');
+function addToCart(newItem) {
+  let cart = JSON.parse(localStorage.getItem("cart")) || [];
+  const existingItem = cart.find((item) => item.code === newItem.code);
 
-function formatterCart (priceSum) {
-    let price = priceSum.toString();
-    let formattedPrice = '';
-    for (let i = 0; i < price.length; i++) {
-        if (i > 0 && i % 3 === 0) {
-            formattedPrice = ' ' + formattedPrice;
-        }
-        formattedPrice = price[price.length - 1 - i] + formattedPrice;
+  if (existingItem) {
+    existingItem.quantity += newItem.quantity;
+  } else {
+    cart.push(newItem);
+  }
+
+  localStorage.setItem("cart", JSON.stringify(cart));
+  updateCartCount();
+}
+
+const btnLocation = document.getElementById("open_cart_btn");
+
+btnLocation.addEventListener("click", () => {
+  if (document.querySelector(".jqcart_layout")) return;
+
+  const cartModal = document.createElement("div");
+  cartModal.classList.add("jqcart_layout");
+
+  let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+  function updateCartDisplay() {
+    const cartItemsList = cartModal.querySelector(".jqcart_tbody");
+    const subtotal = cartModal.querySelector(".jqcart_subtotal strong");
+
+    cartItemsList.innerHTML = "";
+
+    if (cart.length === 0) {
+      cartItemsList.innerHTML = "<p>Ваша корзина пуста</p>";
+      subtotal.textContent = "Итого: 0 тг";
+      return;
     }
-    return formattedPrice;
-};
 
-btnLocation.addEventListener('click', function () {
+    let totalPrice = 0;
 
-    const divElement = document.createElement('div');
+    cart.forEach((item) => {
+      const cartRow = document.createElement("tr");
+      cartRow.classList.add("jqcart_row");
+      cartRow.setAttribute("data-id", item.code);
 
-    divElement.classList.add('jqcart_layout');
+      cartRow.innerHTML = `
+        <td class="jqcart_small_td">
+          <img src="${item.img}" alt="${item.title}" />
+        </td>
+        <td>
+          <a href="#${item.code}.html">${item.title}</a>
+        </td>
+        <td class="jqcart_price">${item.price.toLocaleString("ru-RU")} тг</td>
+        <td>
+          <div class="jqcart_pm">
+            <input type="text" class="jqcart_amount" value="${
+              item.quantity
+            }" readonly>
+            <span class="jqcart_incr" data-code="${item.code}" data-incr="1">
+              <i class="fa fa-angle-up"></i>
+            </span>
+            <span class="jqcart_incr" data-code="${item.code}" data-incr="-1">
+              <i class="fa fa-angle-down"></i>
+            </span>
+          </div>
+        </td>
+        <td class="jqcart_price">
+          ${(item.price * item.quantity).toLocaleString("ru-RU")} тг
+        </td>
+        <td>
+          <button class="jqcart_remove_item" data-code="${
+            item.code
+          }">Удалить</button>
+        </td>
+      `;
 
-    divElement.innerHTML = `
-        <div class="jqcart_content">
-            <div class="jqcart_table_wrapper">
-                <div class="jqcart_manage_order">
-                
-                    <ul class="jqcart_thead">
-                        <li></li>
-                        <li>ТОВАР</li>
-                        <li></li>
-                        <li>ЦЕНА</li>
-                        <li>КОЛИЧЕСТВО </li>
-                        <li>СТОИМОСТЬ</li>
-                    </ul>
-                    
-                    <ul class="jqcart_tbody" data-id="4561">
-                        <li class="jqcart_small_td">
-                            <img src="images/stul_kresla/GloryDC.png" alt="Img">
-                        </li>
-                        <li>
-                            <div class="jqcart_nd">
-                                <a href="#chair.html">Slim DC</a>
-                            </div>
-                        </li>
-                        <li></li>
-                        <li class="jqcart_price">83 000</li>
-                        <li>
-                            <div class="jqcart_pm">
-                                <input type="text" class="jqcart_amount" value="2">
-                                <span class="jqcart_incr" data-incr="1">
-                                    <i class="fa fa-angle-up" aria-hidden="true"></i>
-                                </span>
-                                <span class="jqcart_incr" data-incr="-1">
-                                    <i class="fa fa-angle-down" aria-hidden="true"></i>
-                                </span>
-                            </div>
-                        </li>
-                        <li class="jqcart_sum">166 000 тг</li>
-                    </ul>
-                    
-                    <ul class="jqcart_tbody" data-id="6203">
-                        <li class="jqcart_small_td">
-                            <img src="images/stul_kresla/Hi-tech.png" alt="Img">
-                        </li>
-                        <li>
-                            <div class="jqcart_nd">
-                                <a href="#chair.html">Hi-tech</a>
-                            </div>
-                        </li>
-                        <li></li>
-                        <li class="jqcart_price">95 500</li>
-                        <li>
-                            <div class="jqcart_pm">
-                                <input type="text" class="jqcart_amount" value="1">
-                                <span class="jqcart_incr" data-incr="1">
-                                    <i class="fa fa-angle-up" aria-hidden="true"></i>
-                                </span>
-                                <span class="jqcart_incr" data-incr="-1">
-                                    <i class="fa fa-angle-down" aria-hidden="true"></i>
-                                </span>
-                            </div>
-                        </li>
-                        <li class="jqcart_sum">95 500 тг</li>
-                    </ul>
-                    
-                </div>
-            </div>
-            
-            <div class="jqcart_manage_block">
-                <div class="jqcart_btn">
-                    <button class="jqcart_open_form_btn">Оформить заказ</button>
-                    <form class="jqcart_order_form" style="opacity: 0">
-                        <input class="jqcart_return_btn" type="reset" value="Продолжить покупки">
-                    </form>
-                </div>
-                <div class="jqcart_subtotal">Итого: <strong>261 500</strong> тг</div>
-            </div>
-            
-        </div>
-    `;
-
-    document.body.appendChild(divElement);
-
-    document.querySelector('.jqcart_layout').addEventListener('click', function () {
-        document.querySelector('.jqcart_layout').remove();
+      cartItemsList.appendChild(cartRow);
+      totalPrice += item.price * item.quantity;
     });
 
+    subtotal.textContent = `Итого: ${totalPrice.toLocaleString("ru-RU")} тг`;
+
+    addQuantityHandlers();
+    addRemoveItemHandlers();
+  }
+
+  function addQuantityHandlers() {
+    const buttons = cartModal.querySelectorAll(".jqcart_incr");
+    buttons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const code = btn.getAttribute("data-code");
+        const incr = parseInt(btn.getAttribute("data-incr"), 10);
+        const item = cart.find((el) => el.code === code);
+
+        if (item) {
+          item.quantity = Math.max(0, item.quantity + incr);
+          if (item.quantity === 0) {
+            cart = cart.filter((el) => el.code !== code);
+          }
+          localStorage.setItem("cart", JSON.stringify(cart));
+          updateCartDisplay();
+          updateCartCount();
+        }
+      });
+    });
+  }
+
+  function addRemoveItemHandlers() {
+    const removeButtons = cartModal.querySelectorAll(".jqcart_remove_item");
+    removeButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const code = btn.getAttribute("data-code");
+        cart = cart.filter((item) => item.code !== code);
+        localStorage.setItem("cart", JSON.stringify(cart));
+        updateCartDisplay();
+        updateCartCount();
+      });
+    });
+  }
+
+  cartModal.innerHTML = `
+    <div class="jqcart_content">
+      <div class="jqcart_table_wrapper">
+        <table class="jqcart_manage_order">
+          <thead>
+            <tr>
+              <th></th>
+              <th>ТОВАР</th>
+              <th>ЦЕНА</th>
+              <th>КОЛИЧЕСТВО</th>
+              <th>СТОИМОСТЬ</th>
+              <th>ДЕЙСТВИЯ</th>
+            </tr>
+          </thead>
+          <tbody class="jqcart_tbody"></tbody>
+        </table>
+      </div>
+      <div class="jqcart_manage_block">
+        <div class="jqcart_btn">
+          <button class="jqcart_open_form_btn">Оформить заказ</button>
+        </div>
+        <button class="jqcart_close_btn">Назад</button>
+        <div class="jqcart_subtotal">Итого: <strong>0</strong> тг</div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(cartModal);
+
+  cartModal.querySelector(".jqcart_close_btn").addEventListener("click", () => {
+    cartModal.remove();
+  });
+
+  cartModal.addEventListener("click", (e) => {
+    if (e.target === cartModal) cartModal.remove();
+  });
+
+  updateCartDisplay();
+});
+
+// o,yjdktybt количество товаров при загрузке страницы
+document.addEventListener("DOMContentLoaded", () => {
+  updateCartCount();
 });
